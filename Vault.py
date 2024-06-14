@@ -173,6 +173,7 @@ class essentials():
     def act(cls):
         import json
         import random as rd 
+        from time import sleep
         
         passwd_dict=cls.passwd_dict
         print(f'olaa, {cls.username} welcome to your vault'.upper())
@@ -234,6 +235,7 @@ class essentials():
                 
             elif choice == 'exit'.upper():
                 print('Your vault has been locked'.upper())
+                sleep(3)
                 break
             else:
                 print('invalid input'.upper())
