@@ -5,6 +5,8 @@ import time
 import json
 import random as rd
 from cryptography.fernet import Fernet
+import pyperclip
+from getpass import getpass
 
 # Defining of constants
 BACKUP_DIR='Backup'
@@ -85,7 +87,7 @@ class essentials():
         if PASSWD_FILE in json_list: 
             username=input('enter your vault username: '.upper())
             cls.username=username
-            vault_password=input('enter your vault password: '.upper())
+            vault_password=getpass('enter your vault password: '.upper())
             s=unlock()
             keys=[i for i in s.keys()]
             values=[i for i in s.values()]
@@ -163,8 +165,9 @@ class essentials():
                     value=passwd_dict.get(bio,'invalid account or username')
                     if value == 'invalid account or username':
                         print(value.upper())
-                    else:    
-                        print(f'Your "{acc}" password for "{username}" is {value}')
+                    else:
+                        pyperclip.copy(value)    
+                        print(f'Your "{acc}" password for "{username}" has been copied to clipboard')
                 elif account_type == 'Email address'.upper() or account_type=='email'.upper():
                     mail_address = input('Enter the e-mail address: '.upper())
                     bio = mail_address
@@ -172,8 +175,9 @@ class essentials():
                     value=passwd_dict.get(bio,'invalid account or username')
                     if value == 'invalid account or username':
                         print(value.upper())
-                    else:    
-                        print(f'Your "{bio}" password is {value}')
+                    else:
+                        pyperclip.copy(value)    
+                        print(f'Your "{bio}" password has been copied to clipboard')
             elif choice=='create'.upper():
                 choice=input("enter 'a' if you already have a password in mind or 'g' for us to generate one for you: ".upper()).lower()
                 if choice=='g':
@@ -186,26 +190,27 @@ class essentials():
                     length=16
                     password=''.join(rd.sample(al,length))
                 elif choice == 'a':
-                    password=input('enter the password: '.upper())
-                    conf_pass=input('confirm your password: '.upper())
+                    password=getpass('enter the password: '.upper())
+                    conf_pass=getpass('confirm your password: '.upper())
                     count=3
                     while conf_pass !=password:
                         print(f'passwords do not match,please try again {count} more attempts remaining'.upper())
-                        password=input('enter the password: '.upper())
-                        conf_pass=input('confirm your password: '.upper())
+                        password=getpass('enter the password: '.upper())
+                        conf_pass=getpass('confirm your password: '.upper())
                         count-=1
                         if count==0:
                             print('maximum number of attempts exceeded,kindly try again later'.upper())
                             break  
-                account_type = input("'Email' address or account? ".upper()).upper()
+                account_type = input("'Email' address or 'account'? ".upper()).upper()
                 if account_type == 'account'.upper():
                     account=input('enter name of a/c: '.upper())
                     username=input('enter your username: '.upper())
                     bio=account+' '+username
                 elif account_type == 'email address'.upper() or account_type=='email'.upper():
                     bio = input('Enter the e-mail address: '.upper())
-                passwd_dict.update({bio:password})            
-                print(f'YOUR PASSWORD IS: {password}') 
+                passwd_dict.update({bio:password})     
+                pyperclip.copy(password)       
+                print('your password has been copied to clipboard'.upper()) 
                 lock(passwd_dict)   
                 
             elif choice == 'exit'.upper():
