@@ -65,7 +65,15 @@ def backup():
         os.makedirs(BACKUP_DIR, exist_ok=True)
         shutil.copy(PASSWD_FILE, BACKUP_DIR)
         shutil.copy(CARS_FILE, BACKUP_DIR)
-   
+
+
+def securityQuiz():
+    city=getpass('in which city were you born? '.upper()).lower()
+    color=getpass('what is your favorite colour? '.upper()).lower()
+    nick_name=getpass('what was your childhood nickname? '.upper()).lower()
+    securityQuizDict = {'city':city,'color':color,'nick_name':nick_name}
+    return securityQuizDict
+
 # Main 
 class essentials():
     json_list=[]
@@ -94,21 +102,19 @@ class essentials():
             count=3
             while vault_password!=values[keys.index(username)] and count>0:
                 print(f'incorrect password {count} more attempts remaining')
-                vault_password=input('enter your vault password: '.upper())
+                vault_password=getpass('enter your vault password: '.upper())
                 count-=1
                 if count ==0:
                     print('answer the following security questions to reset your password'.upper())
-                    city=input('in which city were you born? '.upper()).lower()
-                    color=input('what is your favorite colour? '.upper()).lower()
-                    nick_name=input('what was your childhood nickname? '.upper()).lower()
+                    [city,color,nick_name] = securityQuiz().values()
                     if color in values and city in values and nick_name in values:
-                        new_passwd=input('enter your new password: '.upper())
-                        new_passwd_conf=input('confirm your new password: '.upper())
+                        new_passwd=getpass('enter your new password: '.upper())
+                        new_passwd_conf=getpass('confirm your new password: '.upper())
                         count=0
                         while new_passwd != new_passwd_conf:
                             print('The password you entered do not match')
-                            new_passwd=input('enter your new password: '.upper())
-                            new_passwd_conf=input('confirm your new password: '.upper())
+                            new_passwd=getpass('enter your new password: '.upper())
+                            new_passwd_conf=getpass('confirm your new password: '.upper())
                             count+=1
                             if count==3:
                                 print('maximum number of attempts reached'.upper())
@@ -119,8 +125,8 @@ class essentials():
                             print('password was reset succssefuly!!'.upper())
                             continue
                     else:
-                        print('kindly try again later')
-                        break
+                        print('wrong details!!'.upper())
+                        return False
             else:
                 return True
     @classmethod            
@@ -128,21 +134,19 @@ class essentials():
         passwd_dict=cls.passwd_dict
         vault_user_name=input('enter your vault username: '.upper())
         cls.username = vault_user_name
-        vault_pass = input('set your vault password: '.upper())
-        conf_vault_pass=input('confirm your vault password: '.upper())
+        vault_pass = getpass('set your vault password: '.upper())
+        conf_vault_pass=getpass('confirm your vault password: '.upper())
         count=3
         while conf_vault_pass!=vault_pass:
             print(f'password doesnt match please try again you have {count} more attempts'.upper())
-            conf_vault_pass=input('confirm your vault password: '.upper())
+            conf_vault_pass=getpass('confirm your vault password: '.upper())
             count-=1
             if count==0:
                 print('too many attempts try again later'.upper())
                 break 
         else:
             print('answer the following emergency questions'.upper())
-            nick_name=input('what was your childhood nickname? '.upper()).lower()
-            city=input('in which city were you born? '.upper()).lower()
-            color=input('what is your favorite colour? '.upper()).lower()
+            [city,color,nick_name]=securityQuiz().values()
             passwd_dict.update({vault_user_name:vault_pass,'nickname':nick_name,'city':city,'color':color})
             lock(passwd_dict)
             print('account succssefully created!'.upper()) 
@@ -228,8 +232,9 @@ def vault():
         elif essentials.memb()==None:
             essentials.new()
             essentials.act()
-        else:
-            lock()
+        elif essentials.memb() == False:
+            print('The Vault Has Been Locked')
+            return
     except UnboundLocalError:
         print('Wrong details last chance!'.upper())
         os.remove(CARS_FILE)
