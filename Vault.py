@@ -79,8 +79,7 @@ class essentials():
     if conf(file=PASSWD_FILE):
         json_list.append(PASSWD_FILE)
     if PASSWD_FILE in json_list:
-        s=unlock()
-        passwd_dict=s
+        passwd_dict=unlock()
     else:
         passwd_dict={}
     username=''    
