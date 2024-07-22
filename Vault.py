@@ -25,7 +25,6 @@ def unlock():
     if conf(file=PASSWD_FILE):
         json_list.append(PASSWD_FILE)
     if PASSWD_FILE in json_list: 
-        from cryptography.fernet import Fernet
         with open(CARS_FILE,'rb') as f:
             key=f.read()
         with open(PASSWD_FILE,'rb') as f:
