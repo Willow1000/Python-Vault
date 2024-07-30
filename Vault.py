@@ -35,15 +35,14 @@ def unlock():
         return 
 def lock(passwd_dict):
     json_list=[]
-    if conf(file=CARS_FILE):
-        pass
-    else:
+    if conf(file=CARS_FILE) == False:
         with open(CARS_FILE,'wb') as f:
             key = Fernet.generate_key()
             f.write(key)
         with open(PASSWD_FILE,'w') as file:
             file.write('')    
-    if conf(file=PASSWD_FILE):
+    
+    elif conf(file=PASSWD_FILE):
         json_list.append(PASSWD_FILE)
     if PASSWD_FILE in json_list: 
         with open(CARS_FILE,'rb') as f:
