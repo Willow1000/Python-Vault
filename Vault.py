@@ -233,20 +233,9 @@ def vault():
         elif essentials.memb() == False:
             print('The Vault Has Been Locked')
             return
-    except UnboundLocalError:
-        print('Wrong details last chance!'.upper())
-        os.remove(CARS_FILE)
-        os.remove(PASSWD_FILE)
-        shutil.copy(os.path.join(BACKUP_DIR,PASSWD_FILE))
-        shutil.copy(os.path.join(BACKUP_DIR,CARS_FILE))
-        if essentials.memb():
-            essentials.act()
-        elif essentials.memb()==None:
-            essentials.new()
-            essentials.act()
-        else:
-            print('VAULT HAS BEEN LOCKED')
-            return
+    except Error:
+        print('an error occurred'.upper())
+        return 
     finally:
         backup()
 # Running
