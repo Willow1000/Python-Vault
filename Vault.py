@@ -1,0 +1,294 @@
+# Importing necessary libraries
+import os 
+import shutil
+import time
+import json
+import random as rd
+from cryptography.fernet import Fernet
+import pyperclip
+from getpass import getpass
+from datetime import datetime
+
+# Defining of constants
+PASSWD_FILE = os.getcwd()+"\\"+'passengers.json'
+SECRETS_FILE=os.getcwd()+"\\"+'essentials.json'
+CARS_FILE = os.getcwd()+"\\"+'cars.txt'
+
+PASSWD_FILE_NAME = 'passengers.json'
+SECRETS_FILE_NAME='essentials.json'
+CARS_FILE_NAME = 'cars.txt'
+
+# Subordinate Functions  
+def conf(file=None, directory=None, target_dir='./'):
+    if file:
+        return os.path.exists(os.path.join(target_dir, file))
+    elif directory:
+        return os.path.exists(os.path.join(target_dir, directory))
+    return False
+def unlock(file):
+    json_list=[]
+    if conf(file=PASSWD_FILE):
+        json_list.append(PASSWD_FILE)
+    if PASSWD_FILE in json_list: 
+        with open(CARS_FILE,'rb') as f:
+            key=f.read()
+        with open(file,'rb') as f:
+            cont=f.read()
+        cont_decr=json.loads(Fernet(key).decrypt(cont).decode())
+        return cont_decr
+    else:
+        return 
+def lock(dictionary,file):
+    json_list=[]
+    if conf(file=CARS_FILE) == False:
+        with open(CARS_FILE,'wb') as f:
+            key = Fernet.generate_key()
+            f.write(key)
+        cont=json.dumps(dictionary).encode('utf-8')
+        cont_encr=Fernet(key).encrypt(cont)
+        with open(file,'wb') as f:
+            f.write(cont_encr)
+    
+    # elif conf(file=PASSWD_FILE):
+    #     json_list.append(PASSWD_FILE)
+    # if PASSWD_FILE in json_list: 
+    elif conf(file=CARS_FILE):
+        with open(CARS_FILE,'rb') as f:
+            key=f.read()
+        cont=json.dumps(dictionary).encode('utf-8')
+        cont_encr=Fernet(key).encrypt(cont)
+        with open(file,'wb') as f:
+            f.write(cont_encr)
+            
+    else:
+        return        
+
+def backup():
+
+    os.chdir('C:/Users')
+    usersList=[i for i in os.listdir() if (len(i.split(' '))==1 and '.' not in i)]
+    BACKUP_DIR=f'c:/Users/{usersList[1]}/Favorites/Backup'
+
+    if conf(directory=BACKUP_DIR):
+        shutil.copy(PASSWD_FILE, os.path.join(BACKUP_DIR, PASSWD_FILE_NAME))
+        shutil.copy(CARS_FILE, os.path.join(BACKUP_DIR, CARS_FILE_NAME))
+        shutil.copy(SECRETS_FILE, os.path.join(BACKUP_DIR, SECRETS_FILE_NAME))
+    else:
+        os.makedirs(BACKUP_DIR, exist_ok=True)
+        shutil.copy(PASSWD_FILE, BACKUP_DIR)
+        shutil.copy(CARS_FILE, BACKUP_DIR)
+        shutil.copy(SECRETS_FILE, BACKUP_DIR)
+
+
+def securityQuiz():
+    city=getpass('in which city were you born? '.upper()).lower()
+    color=getpass('what is your favorite colour? '.upper()).lower()
+    nick_name=getpass('what was your childhood nickname? '.upper()).lower()
+    securityQuizDict = {'city':city,'color':color,'nick_name':nick_name}
+    return securityQuizDict
+
+# Main 
+class essentials():
+    json_list=[]
+    if conf(file=PASSWD_FILE_NAME):
+        json_list.append(PASSWD_FILE_NAME)
+    if PASSWD_FILE_NAME in json_list:
+        passwd_dict=unlock(PASSWD_FILE)
+        secretdict = unlock(SECRETS_FILE)
+    else:
+        passwd_dict={}
+        secretdict={}
+    username=''    
+   
+    @classmethod  
+    def memb(cls):
+        passwd_dict=cls.passwd_dict
+        json_list=[]
+        if conf(file=PASSWD_FILE_NAME):
+            json_list.append(PASSWD_FILE_NAME)
+        if PASSWD_FILE_NAME in json_list: 
+            username=input('enter your vault username: '.upper())
+            cls.username=username
+            vault_password=getpass('enter your vault password: '.upper())
+            s=unlock(PASSWD_FILE)
+            keys=[i for i in s.keys()]
+            values=[i for i in s.values()]
+            count=3
+            while vault_password!=values[keys.index(username)] and count>0:
+                print(f'incorrect password {count} more attempts remaining')
+                vault_password=getpass('enter your vault password: '.upper())
+                count-=1
+                if count ==0:
+                    print('answer the following security questions to reset your password'.upper())
+                    [city,color,nick_name] = securityQuiz().values()
+                    if color in values and city in values and nick_name in values:
+                        new_passwd=getpass('enter your new password: '.upper())
+                        new_passwd_conf=getpass('confirm your new password: '.upper())
+                        count=0
+                        while new_passwd != new_passwd_conf:
+                            print('The password you entered do not match')
+                            new_passwd=getpass('enter your new password: '.upper())
+                            new_passwd_conf=getpass('confirm your new password: '.upper())
+                            count+=1
+                            if count==3:
+                                print('maximum number of attempts reached'.upper())
+                                quit()
+                        else:
+                            passwd_dict.pop(username)
+                            passwd_dict.update({username:new_passwd})
+                            print('password was reset succssefuly!!'.upper())
+                            continue
+                    else:
+                        print('wrong details!!'.upper())
+                        return False
+            else:
+                return True
+    @classmethod            
+    def new(cls):
+        passwd_dict=cls.passwd_dict
+        secretdict = cls.secretdict
+        vault_user_name=input('enter your vault username: '.upper())
+        cls.username = vault_user_name
+        vault_pass = getpass('set your vault password: '.upper())
+        conf_vault_pass=getpass('confirm your vault password: '.upper())
+        count=3
+        while conf_vault_pass!=vault_pass:
+            print(f'password doesnt match please try again you have {count} more attempts'.upper())
+            conf_vault_pass=getpass('confirm your vault password: '.upper())
+            count-=1
+            if count==0:
+                print('too many attempts try again later'.upper())
+                break 
+        secretPhrase = getpass('set your secret phrase: '.upper())
+        conf_secretPhrase=getpass('confirm your secret phrase: '.upper())
+        count=3
+        while conf_secretPhrase!=secretPhrase:
+            print(f'secret phrase doesnt match please try again you have {count} more attempts'.upper())
+            conf_secretPhrase=getpass('confirm your secret phrase: '.upper())
+            count-=1
+            if count==0:
+                print('too many attempts try again later'.upper())
+                break 
+        else:
+            print('answer the following emergency questions'.upper())
+            [city,color,nick_name]=securityQuiz().values()
+            passwd_dict.update({vault_user_name:vault_pass,'nickname':nick_name,'city':city,'color':color,"secretPhrase":secretPhrase})
+            lock(passwd_dict,PASSWD_FILE)
+            lock(secretdict,SECRETS_FILE)
+            print('account succssefully created!'.upper()) 
+        return True 
+
+    @classmethod
+    def act(cls):
+        passwd_dict=cls.passwd_dict
+        secretdict=cls.secretdict
+        print(f'olaa, {cls.username} welcome to your vault'.upper())
+        choice = ''
+        while True:
+            choice=input("would you like to 'retrieve' a password? ||'create' a new one? || 'exit' ? ".upper()).upper()
+            if choice =='retrieve'.upper():
+                account_type = input("'Email' address or 'account?' ".upper()).upper()
+                if account_type == 'account'.upper():
+                    acc=input('Enter the a/c: '.upper())
+                    username=input('enter your username: '.upper())
+                    bio=acc+' '+username
+                    passwd_dict=unlock(PASSWD_FILE)
+                    value=passwd_dict.get(bio,'invalid account or username')
+                    if value == 'invalid account or username':
+                        print(value.upper())
+                    else:
+                        pyperclip.copy(value)    
+                        print(f'Your "{acc}" password for "{username}" has been copied to clipboard')
+                elif account_type == 'Email address'.upper() or account_type=='email'.upper():
+                    mail_address = input('Enter the e-mail address: '.upper())
+                    bio = mail_address
+                    s=unlock(PASSWD_FILE)
+                    value=passwd_dict.get(bio,'invalid account or username')
+                    if value == 'invalid account or username':
+                        print(value.upper())
+                    else:
+                        pyperclip.copy(value)    
+                        print(f'Your "{bio}" password has been copied to clipboard')
+            elif choice=='create'.upper():
+                choice=input("enter 'a' if you already have a password in mind or 'g' for us to generate one for you: ".upper()).lower()
+                if choice=='g':
+                    lower='abcdefghijklmnopqrstuvwxyz'
+                    upper=lower.upper()
+                    number='0123456789'
+                    symbols='!@#$%^&*'
+
+                    al=lower+upper+number+symbols
+                    length=16
+                    password=''.join(rd.sample(al,length))
+                elif choice == 'a':
+                    password=getpass('enter the password: '.upper())
+                    conf_pass=getpass('confirm your password: '.upper())
+                    count=3
+                    while conf_pass !=password:
+                        print(f'passwords do not match,please try again {count} more attempts remaining'.upper())
+                        password=getpass('enter the password: '.upper())
+                        conf_pass=getpass('confirm your password: '.upper())
+                        count-=1
+                        if count==0:
+                            print('maximum number of attempts exceeded,kindly try again later'.upper())
+                            break  
+                account_type = input("'Email' address or 'account'? ".upper()).upper()
+                if account_type == 'account'.upper():
+                    account=input('enter name of a/c: '.upper())
+                    username=input('enter your username: '.upper())
+                    bio=account+' '+username
+                elif account_type == 'email address'.upper() or account_type=='email'.upper():
+                    bio = input('Enter the e-mail address: '.upper())
+                passwd_dict.update({bio:password})     
+                pyperclip.copy(password)       
+                print('your password has been copied to clipboard'.upper()) 
+                lock(passwd_dict,PASSWD_FILE)   
+            elif choice == passwd_dict.get("secretPhrase",'coffee').upper():
+                print('Welcome...Your secret is safe with me')
+                choices = ['share','reveal','quit']
+                while choice!='quit':
+                    choice=input('would you like to share || reveal a secret(s) || quit: '.upper()).lower()
+                    if choice == 'share':
+                        secret = input('enter your secret: '.upper())
+                        now = f"{datetime.now()}"
+                        secretdict.update({now:secret})
+                        lock(secretdict,SECRETS_FILE)
+                    elif choice == 'reveal':
+                        secretdict = unlock(SECRETS_FILE)   
+                        print(secretdict)     
+                        
+                    elif choice not in choices:
+                        print('invalid input'.upper())    
+                print('Your secerts have been secured!!'.upper())
+                time.sleep(2.2)
+                os.system('cls')
+                  
+            elif choice == 'exit'.upper():
+                lock(secretdict,SECRETS_FILE)
+                print('Your vault has been locked'.upper())
+                time.sleep(2.2)
+                os.system('cls')
+                break
+               
+            else:
+                print('invalid input'.upper())
+
+# Logic
+def vault():
+    try:
+        if essentials.memb():
+            essentials.act()
+        elif essentials.memb()==None:
+            essentials.new()
+            essentials.act()
+        elif essentials.memb() == False:
+            print('The Vault Has Been Locked')
+            return
+    except Exception as error:
+        print(f'an error occurred: {error}'.upper())
+        return 
+    finally:
+        backup()
+# Running
+if __name__ == '__main__':
+    vault()    
